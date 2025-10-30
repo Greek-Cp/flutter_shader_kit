@@ -1,0 +1,113 @@
+// Spreading Frost (Flutter version)
+// One-sampler overlay: reveal the child image with a frosty blur that spreads from the center.
+
+#include <flutter/runtime_effect.glsl>
+
+uniform vec2  resolution;   // widget size in pixels
+uniform float progress;     // 0.0 -> 1.0
+uniform float frostiness;   // ~0..1 strength
+uniform float blurAmount;   // blur radius in pixels
+uniform float ringWidth;    // thickness of the blur ring (0..1 of half-diagonal)
+uniform float ringIrregularity; // 0..1 amount of irregular wave on the ring
+uniform float ringNoiseScale;   // spatial frequency of irregularity
+uniform float bloomStrength;    // intensity of ring bloom
+uniform float bloomWidth;       // width of bloom in pixels around ring front
+uniform vec4  bloomColor;       // color of bloom (non-premultiplied)
+
+uniform sampler2D image;     // child content to reveal (the "to" image)
+
+out vec4 fragColor;
+
+// Simple hash-based random
+float rand(vec2 uv) {
+    float a = dot(uv, vec2(92.0, 80.0));
+    float b = dot(uv, vec2(41.0, 62.0));
+    float x = sin(a) + cos(b) * 51.0;
+    return fract(x);
+}
+
+// Smooth value noise based on rand()
+float noise2(vec2 p) {
+    vec2 i = floor(p);
+    vec2 f = fract(p);
+    float a = rand(i);
+    float b = rand(i + vec2(1.0, 0.0));
+    float c = rand(i + vec2(0.0, 1.0));
+    float d = rand(i + vec2(1.0, 1.0));
+    vec2 u = f*f*(3.0 - 2.0*f);
+    return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
+}
+
+// Small 3x3 box blur (samples global 'image')
+vec4 sampleBlur(vec2 uv, vec2 res, float radiusPx) {
+    if (radiusPx <= 0.001) return texture(image, uv);
+    vec2 px = radiusPx / res;
+    vec4 acc = vec4(0.0);
+    float cnt = 0.0;
+    for (int x = -1; x <= 1; x++) {
+        for (int y = -1; y <= 1; y++) {
+            vec2 o = vec2(float(x), float(y)) * px;
+            acc += texture(image, uv + o);
+            cnt += 1.0;
+        }
+    }
+    return acc / max(cnt, 1.0);
+}
+
+void main() {
+    vec2 frag = FlutterFragCoord().xy;
+        vec2 uv = frag / resolution;
+
+    float p = clamp(progress, 0.0, 1.0);
+        float distPx = length(frag - (resolution * 0.5));
+
+    // Base front radius and thickness
+        float halfDiagPx = length(resolution * 0.5);
+        float ringWpx = clamp(ringWidth, 0.01, 0.5) * halfDiagPx;
+        float sRing = ringWpx * 0.5;
+        // Overshoot beyond corners to guarantee exit
+        float maxReachPx = halfDiagPx + ringWpx;
+        float rFrontBasePx = max(1e-3, p * maxReachPx);
+
+    // Irregular warp of the front radius (spatial noise animated by progress)
+    float n = noise2(uv * max(0.1, ringNoiseScale) * 6.0 + vec2(p * 1.37, p * 0.91));
+    // Taper irregularity near completion so edge fully seals
+    float taper = 1.0 - smoothstep(0.9, 1.0, p);
+        float deltaPx = (n - 0.5) * 2.0 * clamp(ringIrregularity, 0.0, 1.0) * ringWpx * taper;
+        float rFront = clamp(rFrontBasePx + deltaPx, 0.0, maxReachPx);
+        float rClear = max(0.0, rFront - ringWpx);
+
+    // Smooth edge widths (sRing already defined)
+        float sClear = max(1e-6, ringWpx * p * 0.8);
+
+    // Inside masks (1.0 when inside respective radius with soft edges)
+        float insideFront = 1.0 - smoothstep(rFront - sRing, rFront + sRing, distPx);
+        float insideClear = 1.0 - smoothstep(rClear - sClear, rClear + sClear, distPx);
+
+    // Build a blur ring and a clear core
+    float blurRingAlpha = clamp(insideFront - insideClear, 0.0, 1.0);
+    float clearAlpha = clamp(insideClear, 0.0, 1.0);
+
+    // Frosty offset only on the blur ring
+    vec2 rnd = vec2(rand(uv + 0.071), rand(uv + 0.193));
+    rnd = (rnd - 0.5) * 2.0; // [-1,1]
+    rnd *= frostiness * blurRingAlpha;
+
+    // Samples
+    vec4 crispTo = texture(image, uv);
+    vec4 blurTo = sampleBlur(uv + rnd * 0.01, resolution, blurAmount);
+    blurTo.rgb *= vec3(0.9, 0.9, 1.1); // slight cool tint on blur ring
+
+    // Composite premultiplied overlay: clear core + blur ring
+    vec3 outRgb = crispTo.rgb * clearAlpha + blurTo.rgb * blurRingAlpha;
+    float outA = clearAlpha + blurRingAlpha;
+
+    // Bloom/silhouette around the moving front
+    float dFront = abs(distPx - rFront);
+    float glow = smoothstep(bloomWidth, 0.0, dFront); // 1 at front, 0 beyond width
+    float glowMask = glow * (1.0 - insideClear); // avoid glowing inside clear core
+    outRgb += bloomStrength * glowMask * bloomColor.rgb;
+    outRgb = clamp(outRgb, 0.0, 1.0);
+
+    fragColor = vec4(outRgb, outA);
+}

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_shaders/flutter_shaders.dart';
-import 'package:flutter_shaders/src/animated_sampler.dart';
 import '../utils/shader_utils.dart';
 
 /// An image switcher that plays a Spreading Frost transition when switching.

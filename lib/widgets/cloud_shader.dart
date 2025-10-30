@@ -265,28 +265,28 @@ class _CloudPainter extends CustomPainter {
         u.setFloat(flowSpeed);
         u.setFloat(cloudHeight);
         u.setFloats([
-          skyColor.red / 255.0,
-          skyColor.green / 255.0,
-          skyColor.blue / 255.0,
+          skyColor.r,
+          skyColor.g,
+          skyColor.b,
         ]);
         u.setFloats([
-          cloudColor.red / 255.0,
-          cloudColor.green / 255.0,
-          cloudColor.blue / 255.0,
+          cloudColor.r,
+          cloudColor.g,
+          cloudColor.b,
         ]);
         u.setFloat(brightness);
         u.setFloat(opacity);
       } else {
         u.setFloat(windSpeed);
         u.setFloats([
-          skyColor.red / 255.0,
-          skyColor.green / 255.0,
-          skyColor.blue / 255.0,
+          skyColor.r,
+          skyColor.g,
+          skyColor.b,
         ]);
         u.setFloats([
-          cloudColor.red / 255.0,
-          cloudColor.green / 255.0,
-          cloudColor.blue / 255.0,
+          cloudColor.r,
+          cloudColor.g,
+          cloudColor.b,
         ]);
         u.setFloat(blurScale);
         u.setFloat(opacity);

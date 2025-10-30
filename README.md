@@ -399,11 +399,12 @@ const MotionBlurLayer(
 
 ## Contributing
 Issues and PRs are welcome. Please include screenshots or short screen captures for visual changes.
+You’re encouraged to contribute new shaders and effects; include a minimal demo and document parameters.
 
 ---
 
 ## License
-BSD‑style, following the original Flutter authors’ license header.
+MIT. Free to use, modify, and distribute. See the LICENSE file.
 
 # flutter_shaders
 
@@ -687,4 +688,4 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-This project is licensed under the BSD-style license - see the LICENSE file for details.
+This project is licensed under the MIT license - see the LICENSE file for details.

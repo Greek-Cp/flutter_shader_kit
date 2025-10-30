@@ -1,6 +1,6 @@
 name: flutter_shader_kit
 description: A collection of utilities for working with the FragmentProgram API in Flutter.
-version: 0.1.0
+version: 0.1.1
 repository: https://github.com/yanuartrilaksono/flutter_shader_kit
 homepage: https://github.com/yanuartrilaksono/flutter_shader_kit
 issue_tracker: https://github.com/yanuartrilaksono/flutter_shader_kit/issues

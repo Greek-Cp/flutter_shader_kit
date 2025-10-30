@@ -10,6 +10,15 @@ enum CloudShaderStyle {
   toon,
 }
 
+/// Available preset color palettes for the cloud shaders.
+enum CloudColorPreset {
+  /// Default bright daytime palette.
+  standard,
+
+  /// Darker, desaturated storm clouds.
+  stormy,
+}
+
 /// A reusable animated cloud background powered by fragment shaders.
 ///
 /// Wrap any widget with [CloudShader] to render animated clouds behind it.
@@ -30,6 +39,7 @@ class CloudShader extends StatefulWidget {
     this.flowSpeed = 0.1,
     this.cloudHeight = 2.5,
     this.brightness = 1.0,
+    this.colorPreset = CloudColorPreset.stormy,
     this.windSpeed = 1.0,
     this.blurScale = 1.0,
     this.skyColor,
@@ -80,6 +90,9 @@ class CloudShader extends StatefulWidget {
 
   /// Realistic style: overall brightness multiplier.
   final double brightness;
+
+  /// Pre-configured color palette for both cloud styles.
+  final CloudColorPreset colorPreset;
 
   /// Toon style: wind speed multiplier that drives horizontal motion.
   final double windSpeed;
@@ -145,11 +158,21 @@ class _CloudShaderState extends State<CloudShader>
     if (widget.skyColor != null) {
       return widget.skyColor!;
     }
-    switch (widget.style) {
-      case CloudShaderStyle.realistic:
-        return const Color(0xFF4066B8);
-      case CloudShaderStyle.toon:
-        return const Color(0xFF006699);
+    switch (widget.colorPreset) {
+      case CloudColorPreset.standard:
+        switch (widget.style) {
+          case CloudShaderStyle.realistic:
+            return const Color(0xFF4066B8);
+          case CloudShaderStyle.toon:
+            return const Color(0xFF006699);
+        }
+      case CloudColorPreset.stormy:
+        switch (widget.style) {
+          case CloudShaderStyle.realistic:
+            return const Color(0xFF152441);
+          case CloudShaderStyle.toon:
+            return const Color(0xFF003243);
+        }
     }
   }
 
@@ -157,11 +180,21 @@ class _CloudShaderState extends State<CloudShader>
     if (widget.cloudColor != null) {
       return widget.cloudColor!;
     }
-    switch (widget.style) {
-      case CloudShaderStyle.realistic:
-        return const Color(0xFFEFF6FF);
-      case CloudShaderStyle.toon:
-        return const Color(0xFF2EB3DE);
+    switch (widget.colorPreset) {
+      case CloudColorPreset.standard:
+        switch (widget.style) {
+          case CloudShaderStyle.realistic:
+            return const Color(0xFFEFF6FF);
+          case CloudShaderStyle.toon:
+            return const Color(0xFF2EB3DE);
+        }
+      case CloudColorPreset.stormy:
+        switch (widget.style) {
+          case CloudShaderStyle.realistic:
+            return const Color(0xFF6F8292);
+          case CloudShaderStyle.toon:
+            return const Color(0xFF3A6C8A);
+        }
     }
   }
 

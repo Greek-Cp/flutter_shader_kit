@@ -12,6 +12,7 @@ uniform float cloudHeight;   // inverse height of gradient
 uniform vec3 skyColor;       // base sky color
 uniform vec3 cloudColor;     // highlight cloud color
 uniform float brightness;    // global brightness multiplier
+uniform float opacity;       // global alpha multiplier for blending
 
 out vec4 fragColor;
 
@@ -117,5 +118,5 @@ void main() {
   density = clamp(density, 0.0, 1.0);
 
   vec3 color = mix(skyColor, cloudColor, density) * brightness;
-  fragColor = vec4(color, 1.0);
+  fragColor = vec4(color, opacity);
 }
